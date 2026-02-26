@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 
 const AdminLogin = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -19,22 +19,24 @@ const AdminLogin = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // Simple admin authentication (for demo)
     if (formData.email === 'admin@homevalue.com' && formData.password === 'admin123') {
-      localStorage.setItem('admin', JSON.stringify({ email: formData.email }));
+      localStorage.setItem('admin', JSON.stringify({ email: formData.email, role: 'admin' }));
       navigate('/admin-dashboard');
     } else {
-      alert('Invalid admin credentials');
+      alert('Invalid admin credentials!');
     }
   };
 
   return (
     <div className="auth-page">
       <Navbar />
+      
       <div className="auth-container">
         <div className="auth-card">
-          <h2 className="auth-title">Admin Login</h2>
+          <h1 className="auth-title">Admin Login</h1>
           <p className="auth-subtitle">Access the admin dashboard</p>
-          
+
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-group">
               <label htmlFor="email">Admin Email</label>
@@ -66,12 +68,6 @@ const AdminLogin = () => {
               Login as Admin
             </button>
           </form>
-
-          <div className="admin-hint">
-            <p><strong>Demo Credentials:</strong></p>
-            <p>Email: admin@homevalue.com</p>
-            <p>Password: admin123</p>
-          </div>
         </div>
       </div>
     </div>
