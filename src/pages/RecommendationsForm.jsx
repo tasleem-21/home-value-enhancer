@@ -14,16 +14,36 @@ const RecommendationsForm = () => {
     currentCondition: '',
     priority: ''
   });
+  const [errors, setErrors] = useState({});
+
+  const validateField = (name, value) => {
+    if (!String(value).trim()) return 'This field is required.';
+    if (name === 'area' && Number(value) <= 0) return 'Please enter a valid area.';
+    return '';
+  };
+
+  const validateForm = () => {
+    const nextErrors = Object.keys(formData).reduce((acc, key) => {
+      acc[key] = validateField(key, formData[key]);
+      return acc;
+    }, {});
+
+    setErrors(nextErrors);
+    return !Object.values(nextErrors).some(Boolean);
+  };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     localStorage.setItem('propertyDetails', JSON.stringify(formData));
     navigate('/recommendations-result');
   };
@@ -58,6 +78,7 @@ const RecommendationsForm = () => {
                   <option value="Villa">Villa</option>
                   <option value="Row House">Row House</option>
                 </select>
+                {errors.propertyType && <p>{errors.propertyType}</p>}
               </div>
 
               <div className="form-group">
@@ -76,6 +97,7 @@ const RecommendationsForm = () => {
                   <option value="4 BHK">4 BHK</option>
                   <option value="4+ BHK">4+ BHK</option>
                 </select>
+                {errors.bhk && <p>{errors.bhk}</p>}
               </div>
             </div>
 
@@ -91,6 +113,7 @@ const RecommendationsForm = () => {
                   placeholder="e.g., 1200"
                   required
                 />
+                {errors.area && <p>{errors.area}</p>}
               </div>
 
               <div className="form-group">
@@ -109,6 +132,7 @@ const RecommendationsForm = () => {
                   <option value="15-20 years">15-20 years</option>
                   <option value="20+ years">20+ years</option>
                 </select>
+                {errors.age && <p>{errors.age}</p>}
               </div>
             </div>
 
@@ -123,6 +147,7 @@ const RecommendationsForm = () => {
                 placeholder="e.g., Mumbai, Delhi, Bangalore"
                 required
               />
+              {errors.location && <p>{errors.location}</p>}
             </div>
           </div>
 
@@ -146,6 +171,7 @@ const RecommendationsForm = () => {
                   <option value="₹5,00,000 - ₹10,00,000">₹5,00,000 - ₹10,00,000</option>
                   <option value="₹10,00,000+">₹10,00,000+</option>
                 </select>
+                {errors.budget && <p>{errors.budget}</p>}
               </div>
 
               <div className="form-group">
@@ -164,6 +190,7 @@ const RecommendationsForm = () => {
                   <option value="Needs Renovation">Needs Renovation</option>
                   <option value="Poor">Poor</option>
                 </select>
+                {errors.currentCondition && <p>{errors.currentCondition}</p>}
               </div>
             </div>
 
@@ -185,6 +212,7 @@ const RecommendationsForm = () => {
                 <option value="Exterior">Exterior</option>
                 <option value="All Areas">All Areas</option>
               </select>
+              {errors.priority && <p>{errors.priority}</p>}
             </div>
           </div>
 

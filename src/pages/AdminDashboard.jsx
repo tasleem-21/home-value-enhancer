@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import { deleteProperty, getAllProperties, updateProperty } from '../services/api';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -9,6 +10,12 @@ const AdminDashboard = () => {
   const [editingIndex, setEditingIndex] = useState(null);
   const [editFormData, setEditFormData] = useState(null);
   const [activeTab, setActiveTab] = useState('recommendations'); // 'recommendations' or 'submissions'
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [deletingPropertyId, setDeletingPropertyId] = useState(null);
+  const [apiError, setApiError] = useState('');
+
+  const getPropertyId = (property) => property?.id ?? property?._id ?? property?.propertyId;
 
   useEffect(() => {
     const adminData = localStorage.getItem('admin');
@@ -20,10 +27,18 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
-  const loadRecommendations = () => {
-    const saved = localStorage.getItem('recommendations');
-    if (saved) {
-      setRecommendations(JSON.parse(saved));
+  const loadRecommendations = async () => {
+    setIsLoadingRecommendations(true);
+    setApiError('');
+    try {
+      const data = await getAllProperties();
+      const items = Array.isArray(data) ? data : data?.data || [];
+      setRecommendations(Array.isArray(items) ? items : []);
+    } catch (error) {
+      setRecommendations([]);
+      setApiError(error.message || 'Unable to load recommendations.');
+    } finally {
+      setIsLoadingRecommendations(false);
     }
   };
 
@@ -34,11 +49,25 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDelete = (index) => {
+  const handleDelete = async (item, index) => {
     if (window.confirm('Are you sure you want to delete this recommendation?')) {
-      const updated = recommendations.filter((_, i) => i !== index);
-      setRecommendations(updated);
-      localStorage.setItem('recommendations', JSON.stringify(updated));
+      setApiError('');
+      const propertyId = getPropertyId(item);
+      if (propertyId === undefined || propertyId === null) {
+        setApiError('Unable to delete recommendation: missing property ID.');
+        return;
+      }
+
+      setDeletingPropertyId(propertyId);
+      try {
+        await deleteProperty(propertyId);
+        const updated = recommendations.filter((_, i) => i !== index);
+        setRecommendations(updated);
+      } catch (error) {
+        setApiError(error.message || 'Unable to delete recommendation.');
+      } finally {
+        setDeletingPropertyId(null);
+      }
     }
   };
 
@@ -54,13 +83,28 @@ const AdminDashboard = () => {
     });
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     const updated = [...recommendations];
     updated[editingIndex] = editFormData;
-    setRecommendations(updated);
-    localStorage.setItem('recommendations', JSON.stringify(updated));
-    setEditingIndex(null);
-    setEditFormData(null);
+    setApiError('');
+    const targetItem = recommendations[editingIndex];
+    const targetId = getPropertyId(targetItem);
+    if (targetId === undefined || targetId === null) {
+      setApiError('Unable to update recommendation: missing property ID.');
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      await updateProperty(targetId, editFormData);
+      setRecommendations(updated);
+      setEditingIndex(null);
+      setEditFormData(null);
+    } catch (error) {
+      setApiError(error.message || 'Unable to update recommendation.');
+    } finally {
+      setIsSavingEdit(false);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -141,6 +185,8 @@ const AdminDashboard = () => {
 
             <div className="recommendations-table">
               <h2>Manage Recommendations</h2>
+              {isLoadingRecommendations && <p className="no-data">Loading recommendations...</p>}
+              {apiError && <p className="no-data">{apiError}</p>}
               {recommendations.length > 0 ? (
                 <table>
                   <thead>
@@ -212,7 +258,7 @@ const AdminDashboard = () => {
                             </td>
                             <td>
                               <button className="btn-save" onClick={handleSaveEdit}>
-                                ✓ Save
+                                {isSavingEdit ? 'Saving...' : '✓ Save'}
                               </button>
                               <button className="btn-cancel" onClick={handleCancelEdit}>
                                 ✗ Cancel
@@ -229,8 +275,8 @@ const AdminDashboard = () => {
                               <button className="btn-edit" onClick={() => handleEdit(index)}>
                                 ✏️ Edit
                               </button>
-                              <button className="btn-icon" onClick={() => handleDelete(index)}>
-                                🗑️ Delete
+                              <button className="btn-icon" onClick={() => handleDelete(rec, index)}>
+                                {deletingPropertyId === getPropertyId(rec) ? 'Deleting...' : '🗑️ Delete'}
                               </button>
                             </td>
                           </>

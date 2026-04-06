@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import { getAllProperties } from '../services/api';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -8,6 +9,8 @@ const UserDashboard = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [recommendationsError, setRecommendationsError] = useState('');
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -20,10 +23,18 @@ const UserDashboard = () => {
     }
   }, [navigate]);
 
-  const loadRecommendations = () => {
-    const saved = localStorage.getItem('recommendations');
-    if (saved) {
-      setRecommendations(JSON.parse(saved));
+  const loadRecommendations = async () => {
+    setIsLoadingRecommendations(true);
+    setRecommendationsError('');
+    try {
+      const data = await getAllProperties();
+      const items = Array.isArray(data) ? data : data?.data || [];
+      setRecommendations(Array.isArray(items) ? items : []);
+    } catch (error) {
+      setRecommendations([]);
+      setRecommendationsError(error.message || 'Unable to load recommendations right now.');
+    } finally {
+      setIsLoadingRecommendations(false);
     }
   };
 
@@ -137,6 +148,8 @@ const UserDashboard = () => {
         <div className="recommendations-section">
           <h2>Popular Enhancement Ideas</h2>
           <div className="recommendations-grid">
+            {isLoadingRecommendations && <p className="no-data">Loading recommendations...</p>}
+            {!isLoadingRecommendations && recommendationsError && <p className="no-data">{recommendationsError}</p>}
             {recommendations.length > 0 ? (
               recommendations.slice(0, 6).map((rec, index) => (
                 <div key={index} className="recommendation-card">
@@ -146,38 +159,7 @@ const UserDashboard = () => {
                 </div>
               ))
             ) : (
-              <>
-                <div className="recommendation-card">
-                  <h4>Fresh Paint</h4>
-                  <p>A fresh coat of paint can increase property value by 2-5%</p>
-                  <span className="recommendation-category">Interior</span>
-                </div>
-                <div className="recommendation-card">
-                  <h4>Modular Kitchen</h4>
-                  <p>Upgrade to a modern modular kitchen for better appeal</p>
-                  <span className="recommendation-category">Kitchen</span>
-                </div>
-                <div className="recommendation-card">
-                  <h4>Bathroom Renovation</h4>
-                  <p>Modern fixtures and tiles enhance property value significantly</p>
-                  <span className="recommendation-category">Bathroom</span>
-                </div>
-                <div className="recommendation-card">
-                  <h4>Energy Efficient Windows</h4>
-                  <p>Install double-glazed windows for better insulation</p>
-                  <span className="recommendation-category">Windows</span>
-                </div>
-                <div className="recommendation-card">
-                  <h4>Landscaping</h4>
-                  <p>Well-maintained garden can add 5-10% to property value</p>
-                  <span className="recommendation-category">Exterior</span>
-                </div>
-                <div className="recommendation-card">
-                  <h4>Smart Home Features</h4>
-                  <p>Add smart lighting and security systems</p>
-                  <span className="recommendation-category">Technology</span>
-                </div>
-              </>
+              !isLoadingRecommendations && !recommendationsError && <p className="no-data">No recommendations found.</p>
             )}
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import { addProperty } from '../services/api';
 
 const AdminAdd = () => {
   const navigate = useNavigate();
@@ -13,24 +14,49 @@ const AdminAdd = () => {
     timeframe: '',
     propertyType: ''
   });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const validateField = (name, value) => {
+    if (!String(value).trim()) return 'This field is required.';
+    return '';
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const nextErrors = Object.keys(formData).reduce((acc, key) => {
+      acc[key] = validateField(key, formData[key]);
+      return acc;
+    }, {});
+
+    setErrors(nextErrors);
+    return !Object.values(nextErrors).some(Boolean);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const existing = localStorage.getItem('recommendations');
-    const recommendations = existing ? JSON.parse(existing) : [];
-    recommendations.push(formData);
-    localStorage.setItem('recommendations', JSON.stringify(recommendations));
-    
-    alert('Recommendation added successfully!');
-    navigate('/admin-dashboard');
+    if (!validateForm()) return;
+
+    setApiError('');
+    setIsLoading(true);
+    try {
+      await addProperty(formData);
+      alert('Recommendation added successfully!');
+      navigate('/admin-dashboard');
+    } catch (error) {
+      setApiError(error.message || 'Failed to add recommendation. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -44,6 +70,7 @@ const AdminAdd = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="admin-form">
+          {apiError && <p>{apiError}</p>}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="title">Recommendation Title *</label>
@@ -56,6 +83,7 @@ const AdminAdd = () => {
                 placeholder="e.g., Modern Modular Kitchen"
                 required
               />
+              {errors.title && <p>{errors.title}</p>}
             </div>
 
             <div className="form-group">
@@ -77,6 +105,7 @@ const AdminAdd = () => {
                 <option value="Technology">Technology</option>
                 <option value="Landscaping">Landscaping</option>
               </select>
+              {errors.category && <p>{errors.category}</p>}
             </div>
           </div>
 
@@ -91,6 +120,7 @@ const AdminAdd = () => {
               rows="4"
               required
             />
+            {errors.description && <p>{errors.description}</p>}
           </div>
 
           <div className="form-row">
@@ -110,6 +140,7 @@ const AdminAdd = () => {
                 <option value="₹2,50,000 - ₹5,00,000">₹2,50,000 - ₹5,00,000</option>
                 <option value="₹5,00,000+">₹5,00,000+</option>
               </select>
+              {errors.costRange && <p>{errors.costRange}</p>}
             </div>
 
             <div className="form-group">
@@ -127,6 +158,7 @@ const AdminAdd = () => {
                 <option value="High (7-15%)">High (7-15%)</option>
                 <option value="Very High (15%+)">Very High (15%+)</option>
               </select>
+              {errors.impact && <p>{errors.impact}</p>}
             </div>
           </div>
 
@@ -147,6 +179,7 @@ const AdminAdd = () => {
                 <option value="2-3 months">2-3 months</option>
                 <option value="3-6 months">3-6 months</option>
               </select>
+              {errors.timeframe && <p>{errors.timeframe}</p>}
             </div>
 
             <div className="form-group">
@@ -164,6 +197,7 @@ const AdminAdd = () => {
                 <option value="Villa">Villa</option>
                 <option value="All">All Types</option>
               </select>
+              {errors.propertyType && <p>{errors.propertyType}</p>}
             </div>
           </div>
 
@@ -171,7 +205,7 @@ const AdminAdd = () => {
             <button type="button" className="btn btn-secondary" onClick={() => navigate('/admin-dashboard')}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={isLoading}>
               Add Recommendation
             </button>
           </div>

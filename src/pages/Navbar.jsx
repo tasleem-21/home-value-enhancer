@@ -1,17 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { clearSession, getRole, isAuthenticated } from '../services/auth';
 
 const Navbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('admin');
+    clearSession();
     navigate('/');
   };
 
-  const isLoggedIn = localStorage.getItem('user') || localStorage.getItem('admin');
-  const isAdmin = localStorage.getItem('admin');
+  const isLoggedIn = isAuthenticated();
+  const isAdmin = getRole() === 'admin';
 
   return (
     <nav className="navbar">
