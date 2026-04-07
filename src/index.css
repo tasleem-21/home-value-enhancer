@@ -1,0 +1,66 @@
+:root {
+  /* Very Light Baby Pink Color Scheme */
+  --primary-color: #f48fb1; /* Soft pink - buttons */
+  --primary-hover: #ec407a; /* Darker pink on hover */
+  --secondary-color: #f8bbd0; /* Light pink */
+  --light-pink: #fce4ec; /* Very pale pink */
+  
+  /* Ultra Light Backgrounds */
+  --pale-bg: #fffbfc; /* Almost white with hint of pink */
+  --pale-bg-2: #fff5f7; /* Slightly more pink */
+  --pale-bg-3: #ffe9f0; /* Very subtle baby pink */
+  
+  /* Neutrals */
+  --white: #ffffff;
+  --text-dark: #4a4a4a;
+  --text-light: #757575;
+  --border-color: #f8bbd0;
+  
+  /* Status Colors */
+  --success-color: #f48fb1;
+  --warning-color: #ffb74d;
+  --danger-color: #e57373;
+  --dark-bg: #ad1457; /* Deep pink for footer */
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(244, 143, 177, 0.12);
+  --shadow-md: 0 4px 16px rgba(244, 143, 177, 0.15);
+  --shadow-lg: 0 8px 24px rgba(244, 143, 177, 0.18);
+  
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--text-dark);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fffbfc 0%, #fff5f7 50%, #ffe9f0 100%);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+input, select, textarea {
+  font-family: inherit;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
