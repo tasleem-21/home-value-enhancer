@@ -173,8 +173,12 @@ const extractSingleRecommendation = (payload) => {
   return null;
 };
 
+const configuredApiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8080/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',  // Note: /api is included here
+  // Remove trailing slashes to avoid double-slash URLs when endpoint paths start with '/'.
+  baseURL: configuredApiBaseUrl.replace(/\/+$/, ''),
   headers: {
     'Content-Type': 'application/json'
   }
