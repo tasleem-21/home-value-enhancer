@@ -181,8 +181,23 @@ const api = axios.create({
   baseURL: configuredApiBaseUrl.replace(/\/+$/, ''),
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true
 });
+
+// Add response interceptor for better error logging
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API Error:', {
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data,
+      url: error.config?.url
+    });
+    return Promise.reject(error);
+  }
+);
 
 const handleApiError = (error, fallbackMessage) => {
   const message =
